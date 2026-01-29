@@ -8,7 +8,7 @@ version = "1.0.0"
 authors = [
   { name="Dinh Thuan", email="iamdinhthuan@gmail.com" },
 ]
-description = "Vietnamese Text-to-Speech với Voice Cloning, sử dụng NovaSR upsampler"
+description = "Vietnamese Text-to-Speech với Voice Cloning, sử dụng FlashSR upsampler"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
     "lmdeploy",
     "librosa",
-    "novasr @ git+https://github.com/ysharma3501/NovaSR.git",
+    "fastaudiosr @ git+https://github.com/ysharma3501/FlashSR.git",
     "ncodec @ git+https://github.com/ysharma3501/FastBiCodec.git",
     "einops",
     "onnxruntime-gpu",
