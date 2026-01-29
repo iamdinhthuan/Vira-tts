@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Vira-TTS"
+version = "1.0.0"
+authors = [
+  { name="Dinh Thuan", email="iamdinhthuan@gmail.com" },
+]
+description = "Vietnamese Text-to-Speech với Voice Cloning, sử dụng NovaSR upsampler"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "lmdeploy",
+    "librosa",
+    "novasr @ git+https://github.com/ysharma3501/NovaSR.git",
+    "ncodec @ git+https://github.com/ysharma3501/FastBiCodec.git",
+    "einops",
+    "onnxruntime-gpu",
+    "gradio",
+    "soundfile"
+]
+
+[project.urls]
+Homepage = "https://github.com/iamdinhthuan/Vira-tts"
+Issues = "https://github.com/iamdinhthuan/Vira-tts/issues"
