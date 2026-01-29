@@ -2,17 +2,24 @@ import time
 import torch
 import gradio as gr
 from mira.model_novasr import MiraTTSNovaSR
+from mira.model import MiraTTS
 from mira.utils import split_text
 
-# Load model globally (load once at startup)
+# Load models globally (load once at startup)
+MODEL_PATH = 'outputs_vi/checkpoint-25000'
+
 print("Loading MiraTTS with NovaSR upsampler...")
-mira_tts = MiraTTSNovaSR('outputs_vi/checkpoint-25000')
-print("Model loaded!")
+mira_tts_novasr = MiraTTSNovaSR(MODEL_PATH)
+print("NovaSR model loaded!")
+
+print("Loading MiraTTS with FlashSR upsampler...")
+mira_tts_flashsr = MiraTTS(MODEL_PATH)
+print("FlashSR model loaded!")
 
 SAMPLE_RATE = 48000
 
 
-def generate_speech(text: str, reference_audio: str):
+def generate_speech(text: str, reference_audio: str, upsampler: str):
     """Generate speech from text using reference audio for voice cloning."""
 
     if not text.strip():
@@ -22,6 +29,14 @@ def generate_speech(text: str, reference_audio: str):
         return None, "Vui lòng upload file audio tham chiếu."
 
     try:
+        # Select model based on upsampler choice
+        if upsampler == "NovaSR (50KB, 3600x realtime)":
+            mira_tts = mira_tts_novasr
+            upsampler_name = "NovaSR"
+        else:
+            mira_tts = mira_tts_flashsr
+            upsampler_name = "FlashSR"
+
         # Encode reference audio
         context_tokens = mira_tts.encode_audio(reference_audio)
 
@@ -46,7 +61,7 @@ def generate_speech(text: str, reference_audio: str):
         rtf = inference_time / audio_duration
 
         # Create stats message
-        stats = f"📝 Số câu: {len(sentences)} | ⏱️ Inference: {inference_time:.2f}s | 🎵 Audio: {audio_duration:.2f}s | 📊 RTF: {rtf:.4f}"
+        stats = f"🔧 {upsampler_name} | 📝 Số câu: {len(sentences)} | ⏱️ Inference: {inference_time:.2f}s | 🎵 Audio: {audio_duration:.2f}s | 📊 RTF: {rtf:.4f}"
 
         return (SAMPLE_RATE, audio_np), stats
 
@@ -55,14 +70,19 @@ def generate_speech(text: str, reference_audio: str):
 
 
 # Create Gradio interface
-with gr.Blocks(title="MiraTTS Vietnamese", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Vira-TTS Vietnamese", theme=gr.themes.Soft()) as demo:
     gr.Markdown("""
-    # 🎙️ MiraTTS Vietnamese
-    ### Text-to-Speech với Voice Cloning (NovaSR - 3600x realtime)
+    # 🎙️ Vira-TTS Vietnamese
+    ### Text-to-Speech với Voice Cloning
 
     Upload một file audio tham chiếu để clone giọng nói, sau đó nhập văn bản để tạo audio.
+
+    | Upsampler | Speed | Size |
+    |-----------|-------|------|
+    | **NovaSR** | 3600x realtime | 50KB |
+    | FlashSR | 14x realtime | 1GB |
     """)
-    
+
     with gr.Row():
         with gr.Column(scale=1):
             text_input = gr.Textbox(
@@ -74,8 +94,13 @@ with gr.Blocks(title="MiraTTS Vietnamese", theme=gr.themes.Soft()) as demo:
                 label="Audio tham chiếu (để clone giọng)",
                 type="filepath"
             )
+            upsampler_choice = gr.Radio(
+                label="Upsampler",
+                choices=["NovaSR (50KB, 3600x realtime)", "FlashSR (1GB, 14x realtime)"],
+                value="NovaSR (50KB, 3600x realtime)"
+            )
             generate_btn = gr.Button("🎵 Tạo Audio", variant="primary", size="lg")
-        
+
         with gr.Column(scale=1):
             output_audio = gr.Audio(
                 label="Audio đầu ra",
@@ -85,7 +110,7 @@ with gr.Blocks(title="MiraTTS Vietnamese", theme=gr.themes.Soft()) as demo:
                 label="Thống kê",
                 interactive=False
             )
-    
+
     # Example texts (click to fill)
     gr.Markdown("### 📝 Ví dụ văn bản:")
     with gr.Row():
@@ -101,11 +126,11 @@ with gr.Blocks(title="MiraTTS Vietnamese", theme=gr.themes.Soft()) as demo:
             fn=lambda: "Công nghệ trí tuệ nhân tạo đang phát triển rất nhanh chóng.",
             outputs=[text_input]
         )
-    
+
     # Event handler
     generate_btn.click(
         fn=generate_speech,
-        inputs=[text_input, reference_audio],
+        inputs=[text_input, reference_audio, upsampler_choice],
         outputs=[output_audio, stats_output]
     )
 
