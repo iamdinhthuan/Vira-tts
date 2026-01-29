@@ -86,15 +86,21 @@ with gr.Blocks(title="MiraTTS Vietnamese", theme=gr.themes.Soft()) as demo:
                 interactive=False
             )
     
-    # Examples
-    gr.Examples(
-        examples=[
-            ["Xin chào, tôi là trợ lý ảo MiraTTS."],
-            ["Hôm nay thời tiết rất đẹp, chúng ta đi dạo nhé!"],
-            ["Công nghệ trí tuệ nhân tạo đang phát triển rất nhanh chóng."],
-        ],
-        inputs=[text_input]
-    )
+    # Example texts (click to fill)
+    gr.Markdown("### 📝 Ví dụ văn bản:")
+    with gr.Row():
+        gr.Button("Xin chào, tôi là trợ lý ảo.").click(
+            fn=lambda: "Xin chào, tôi là trợ lý ảo MiraTTS.",
+            outputs=[text_input]
+        )
+        gr.Button("Thời tiết hôm nay").click(
+            fn=lambda: "Hôm nay thời tiết rất đẹp, chúng ta đi dạo nhé!",
+            outputs=[text_input]
+        )
+        gr.Button("Công nghệ AI").click(
+            fn=lambda: "Công nghệ trí tuệ nhân tạo đang phát triển rất nhanh chóng.",
+            outputs=[text_input]
+        )
     
     # Event handler
     generate_btn.click(
