@@ -56,20 +56,26 @@ def trim_silence_with_vad(audio_tensor: torch.Tensor, sample_rate: int = 16000) 
 
     VAD_SR = 16000
 
+    # Save original device to restore later
+    original_device = audio_tensor.device
+
     # Ensure tensor is float and 1D
     if audio_tensor.dim() > 1:
         audio_tensor = audio_tensor.squeeze()
     audio_tensor = audio_tensor.float()
 
+    # Move to CPU for VAD (Silero VAD runs on CPU)
+    audio_cpu = audio_tensor.cpu()
+
     # Resample for VAD if necessary
     if sample_rate != VAD_SR:
         resampler = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=VAD_SR)
-        vad_input = resampler(audio_tensor)
+        vad_input = resampler(audio_cpu)
     else:
-        vad_input = audio_tensor
+        vad_input = audio_cpu
 
     try:
-        # Get speech timestamps
+        # Get speech timestamps (VAD runs on CPU)
         speech_timestamps = get_timestamps(vad_input, vad_model, sampling_rate=VAD_SR)
 
         if not speech_timestamps:
