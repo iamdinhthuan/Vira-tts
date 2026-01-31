@@ -111,6 +111,24 @@ python app.py
 
 Mở trình duyệt tại `http://localhost:7860`
 
+> **Note:** Model sẽ tự động được tải từ HuggingFace nếu chưa có.
+
+### CLI Inference
+
+```bash
+# Cơ bản
+python infer.py --text "Xin chào, tôi là Vira." --reference audio.wav
+
+# Chỉ định output
+python infer.py --text "Năm 2024 là năm tuyệt vời." --reference audio.wav --output output.wav
+
+# Đọc từ file text
+python infer.py --text-file story.txt --reference audio.wav --output story.wav
+
+# Tắt text normalization
+python infer.py --text "Xin chào" --reference audio.wav --no-normalize
+```
+
 ## 📁 Cấu trúc
 
 ```

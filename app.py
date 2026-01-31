@@ -1,16 +1,34 @@
 import time
+import os
 import torch
 import gradio as gr
+from huggingface_hub import snapshot_download
 from mira.model import MiraTTS
 from mira.utils import split_text
 
-# Load model globally (load once at startup)
-# Model from HuggingFace: dolly-vn/Vira-TTS
-MODEL_PATH = 'model_pretrained'
+# Model config
+HF_MODEL_ID = "dolly-vn/Vira-TTS"
+MODEL_PATH = "model_pretrained"
 
-print("Loading Vira-TTS (dolly-vn/Vira-TTS)...")
+def download_model_if_needed():
+    """Download model from HuggingFace if not exists locally."""
+    if not os.path.exists(MODEL_PATH) or not os.listdir(MODEL_PATH):
+        print(f"📥 Downloading model from HuggingFace: {HF_MODEL_ID}...")
+        snapshot_download(
+            repo_id=HF_MODEL_ID,
+            local_dir=MODEL_PATH,
+            local_dir_use_symlinks=False
+        )
+        print("✅ Model downloaded!")
+    else:
+        print(f"✅ Model found at: {MODEL_PATH}")
+
+# Download model if needed
+download_model_if_needed()
+
+print("🔄 Loading Vira-TTS...")
 mira_tts = MiraTTS(MODEL_PATH)
-print("Model loaded!")
+print("✅ Model loaded!")
 
 SAMPLE_RATE = 48000
 
