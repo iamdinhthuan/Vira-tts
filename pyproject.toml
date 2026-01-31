@@ -24,7 +24,9 @@ dependencies = [
     "einops",
     "onnxruntime-gpu",
     "gradio",
-    "soundfile"
+    "soundfile",
+    "soe-vinorm",
+    "huggingface_hub"
 ]
 
 [project.urls]

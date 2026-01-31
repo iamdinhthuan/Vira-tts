@@ -5,9 +5,10 @@ from mira.model import MiraTTS
 from mira.utils import split_text
 
 # Load model globally (load once at startup)
-MODEL_PATH = 'outputs_vi/checkpoint-25000'
+# Model from HuggingFace: dolly-vn/Vira-TTS
+MODEL_PATH = 'model_pretrained'
 
-print("Loading MiraTTS with FlashSR upsampler...")
+print("Loading Vira-TTS (dolly-vn/Vira-TTS)...")
 mira_tts = MiraTTS(MODEL_PATH)
 print("Model loaded!")
 
@@ -57,7 +58,7 @@ def generate_speech(text: str, reference_audio: str):
 
 
 # Create Gradio interface
-with gr.Blocks(title="Vira-TTS Vietnamese", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Vira-TTS Vietnamese", theme=gr.themes.Soft()) as demo: # type: ignore
     gr.Markdown("""
     # 🎙️ Vira-TTS Vietnamese
     ### Text-to-Speech với Voice Cloning

@@ -38,6 +38,8 @@ venv/
 
 # Model checkpoints (too large)
 outputs_vi/
+model_pretrained/
+checkpoint-*/
 
 # Audio files
 *.wav

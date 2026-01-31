@@ -2,6 +2,53 @@ import re
 import gc
 import torch
 
+# Lazy load normalizer to avoid import error if not installed
+_normalizer = None
+
+def get_normalizer():
+    """Lazy load SoeNormalizer."""
+    global _normalizer
+    if _normalizer is None:
+        try:
+            from soe_vinorm import SoeNormalizer
+            _normalizer = SoeNormalizer()
+        except ImportError:
+            print("Warning: soe_vinorm not installed. Text normalization disabled.")
+            _normalizer = False
+    return _normalizer
+
+
+def fix_punctuation_spacing(text: str) -> str:
+    """
+    Fix spacing around punctuation marks.
+    Remove space before punctuation, ensure space after.
+    """
+    # Remove space before punctuation marks
+    text = re.sub(r'\s+([.,!?;:"])', r'\1', text)
+
+    # Ensure space after punctuation (except at end of string)
+    text = re.sub(r'([.,!?;:])(?=[^\s\d])', r'\1 ', text)
+
+    # Remove multiple spaces
+    text = re.sub(r'\s+', ' ', text)
+
+    return text.strip()
+
+
+def normalize_vietnamese(text: str) -> str:
+    """
+    Normalize Vietnamese text using soe_vinorm.
+    Converts numbers, abbreviations, etc. to spoken form.
+    """
+    normalizer = get_normalizer()
+
+    if normalizer and normalizer is not False:
+        text = normalizer.normalize(text)
+        # Fix spacing issues from normalizer
+        text = fix_punctuation_spacing(text)
+
+    return text
+
 
 def punc_norm(text: str) -> str:
     """
@@ -9,7 +56,7 @@ def punc_norm(text: str) -> str:
     containing chars not seen often in the dataset
     """
     if len(text) == 0:
-        return "You need to add some text for me to talk."
+        return "Bạn cần nhập văn bản để tôi đọc."
 
     # Capitalise first letter
     if text[0].islower():
@@ -45,11 +92,19 @@ def punc_norm(text: str) -> str:
     return text
 
 
-def split_text(text: str) -> list[str]:
+def split_text(text: str, normalize: bool = True) -> list[str]:
     """
     Normalize punctuation and split text into sentences by . ! ?
+
+    Args:
+        text: Input text
+        normalize: Whether to apply Vietnamese normalization (numbers, etc.)
     """
-    # Normalize punctuation first
+    # Apply Vietnamese normalization first (numbers -> words, etc.)
+    if normalize:
+        text = normalize_vietnamese(text)
+
+    # Normalize punctuation
     text = punc_norm(text)
 
     # Split by sentence enders (. ! ?) while keeping the punctuation

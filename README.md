@@ -2,6 +2,8 @@
 
 Vietnamese Text-to-Speech với Voice Cloning, được finetune từ [MiraTTS](https://huggingface.co/YatharthS/MiraTTS) cho tiếng Việt.
 
+🤗 **Model:** [dolly-vn/Vira-TTS](https://huggingface.co/dolly-vn/Vira-TTS)
+
 Sử dụng [FlashSR](https://github.com/ysharma3501/FlashSR) để upscale audio lên 48kHz chất lượng cao.
 
 ## ✨ Tính năng
@@ -10,8 +12,8 @@ Sử dụng [FlashSR](https://github.com/ysharma3501/FlashSR) để upscale audi
 - 🎙️ **Voice Cloning**: Clone giọng nói từ audio tham chiếu
 - ⚡ **Nhanh**: FlashSR upsampling 14x realtime
 - 🎵 **Chất lượng cao**: Audio 48kHz rõ ràng
-- � **Crossfade**: Nối nhiều câu mượt mà với crossfade
-- 📝 **Text Processing**: Chuẩn hóa dấu câu và cắt câu tự động
+- 🔀 **Crossfade**: Nối nhiều câu mượt mà với crossfade
+- 📝 **Text Normalization**: Tự động chuyển số, viết tắt thành chữ (sử dụng [soe-vinorm](https://github.com/v-nhandt21/VietnameseSoETextNorm))
 
 ## 📦 Cài đặt
 
@@ -26,6 +28,17 @@ cd Vira-tts
 pip install -e .
 ```
 
+### Download model từ HuggingFace
+
+```bash
+# Cách 1: Dùng huggingface-cli
+huggingface-cli download dolly-vn/Vira-TTS --local-dir model_pretrained
+
+# Cách 2: Dùng Python
+from huggingface_hub import snapshot_download
+snapshot_download("dolly-vn/Vira-TTS", local_dir="model_pretrained")
+```
+
 ## 🚀 Sử dụng
 
 ### Inference cơ bản
@@ -33,8 +46,8 @@ pip install -e .
 ```python
 from mira.model import MiraTTS
 
-# Load model (thay bằng checkpoint của bạn)
-mira_tts = MiraTTS('outputs_vi/checkpoint-25000')
+# Load model
+mira_tts = MiraTTS('model_pretrained')
 
 # Audio tham chiếu để clone giọng
 file = "reference.wav"
@@ -48,12 +61,28 @@ import soundfile as sf
 sf.write("output.wav", audio.float().cpu().numpy(), 48000)
 ```
 
+### Text Normalization
+
+Vira-TTS tự động normalize text tiếng Việt:
+
+```python
+from mira.utils import split_text, normalize_vietnamese
+
+# Tự động chuyển số thành chữ
+text = "Từ năm 2021 đến nay, đây là lần thứ 3."
+normalized = normalize_vietnamese(text)
+# Output: "Từ năm hai nghìn không trăm hai mươi mốt đến nay, đây là lần thứ ba."
+
+# split_text() tự động normalize
+sentences = split_text(text)
+```
+
 ### Batch inference (nhiều câu với crossfade)
 
 ```python
 from mira.model import MiraTTS
 
-mira_tts = MiraTTS('outputs_vi/checkpoint-25000')
+mira_tts = MiraTTS('model_pretrained')
 
 file = "reference.wav"
 texts = [
@@ -88,10 +117,10 @@ Mở trình duyệt tại `http://localhost:7860`
 Vira-tts/
 ├── mira/
 │   ├── model.py          # MiraTTS với FlashSR và crossfade
-│   └── utils.py          # Utilities (split_text, punc_norm)
+│   └── utils.py          # Utilities (split_text, normalize_vietnamese)
 ├── app.py                # Gradio Web UI
 ├── predict.py            # Script test
-└── outputs_vi/           # Checkpoint finetune tiếng Việt
+└── model_pretrained/     # Model từ HuggingFace
 ```
 
 ## 🔧 Tính năng Audio
@@ -118,6 +147,7 @@ Audio: ╱─────────────────────╲
 - [Spark-TTS](https://huggingface.co/SparkAudio/Spark-TTS-0.5B) - Base model
 - [FlashSR](https://github.com/ysharma3501/FlashSR) - Audio super-resolution
 - [LMDeploy](https://github.com/InternLM/lmdeploy) - LLM inference optimization
+- [soe-vinorm](https://github.com/v-nhandt21/VietnameseSoETextNorm) - Vietnamese text normalization
 
 ## 📧 Liên hệ
 
