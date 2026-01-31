@@ -1,172 +1,150 @@
 # Vira-TTS
 
-Vietnamese Text-to-Speech với Voice Cloning, được finetune từ [MiraTTS](https://huggingface.co/YatharthS/MiraTTS) cho tiếng Việt.
+Vietnamese Text-to-Speech with Voice Cloning, finetuned from [MiraTTS](https://huggingface.co/YatharthS/MiraTTS) for Vietnamese.
 
-🤗 **Model:** [dolly-vn/Vira-TTS](https://huggingface.co/dolly-vn/Vira-TTS)
+**Model:** [dolly-vn/Vira-TTS](https://huggingface.co/dolly-vn/Vira-TTS)
 
-Sử dụng [FlashSR](https://github.com/ysharma3501/FlashSR) để upscale audio lên 48kHz chất lượng cao.
+## Features
 
-## ✨ Tính năng
+- **Vietnamese TTS**: Finetuned specifically for Vietnamese language
+- **Voice Cloning**: Clone any voice from a reference audio sample
+- **High Quality**: 48kHz audio output using [FlashSR](https://github.com/ysharma3501/FlashSR) upsampling (14x realtime)
+- **Text Normalization**: Automatic conversion of numbers, abbreviations to spoken form using [soe-vinorm](https://github.com/vinhdq842/soe-vinorm.git)
+- **Smooth Audio**: Crossfade support for seamless sentence transitions
 
-- 🇻🇳 **Tiếng Việt**: Đã finetune cho tiếng Việt
-- 🎙️ **Voice Cloning**: Clone giọng nói từ audio tham chiếu
-- ⚡ **Nhanh**: FlashSR upsampling 14x realtime
-- 🎵 **Chất lượng cao**: Audio 48kHz rõ ràng
-- 🔀 **Crossfade**: Nối nhiều câu mượt mà với crossfade
-- 📝 **Text Normalization**: Tự động chuyển số, viết tắt thành chữ (sử dụng [soe-vinorm](https://github.com/v-nhandt21/VietnameseSoETextNorm))
-
-## 📦 Cài đặt
+## Installation
 
 ```bash
 pip install git+https://github.com/iamdinhthuan/Vira-tts.git
 ```
 
-Hoặc cài thủ công:
+Or install manually:
+
 ```bash
 git clone https://github.com/iamdinhthuan/Vira-tts.git
 cd Vira-tts
 pip install -e .
 ```
 
-### Download model từ HuggingFace
+## Quick Start
 
-```bash
-# Cách 1: Dùng huggingface-cli
-huggingface-cli download dolly-vn/Vira-TTS --local-dir model_pretrained
+The model will be automatically downloaded from HuggingFace on first run.
 
-# Cách 2: Dùng Python
-from huggingface_hub import snapshot_download
-snapshot_download("dolly-vn/Vira-TTS", local_dir="model_pretrained")
-```
-
-## 🚀 Sử dụng
-
-### Inference cơ bản
+### Basic Inference
 
 ```python
 from mira.model import MiraTTS
 
-# Load model
 mira_tts = MiraTTS('model_pretrained')
 
-# Audio tham chiếu để clone giọng
-file = "reference.wav"
+# Reference audio for voice cloning
+reference_audio = "reference.wav"
 text = "Xin chào, đây là giọng nói tiếng Việt."
 
-context_tokens = mira_tts.encode_audio(file)
+context_tokens = mira_tts.encode_audio(reference_audio)
 audio = mira_tts.generate(text, context_tokens)
 
-# Lưu audio
+# Save audio
 import soundfile as sf
 sf.write("output.wav", audio.float().cpu().numpy(), 48000)
 ```
 
 ### Text Normalization
 
-Vira-TTS tự động normalize text tiếng Việt:
+Vira-TTS automatically normalizes Vietnamese text (numbers, abbreviations to spoken form):
 
 ```python
 from mira.utils import split_text, normalize_vietnamese
 
-# Tự động chuyển số thành chữ
 text = "Từ năm 2021 đến nay, đây là lần thứ 3."
 normalized = normalize_vietnamese(text)
 # Output: "Từ năm hai nghìn không trăm hai mươi mốt đến nay, đây là lần thứ ba."
 
-# split_text() tự động normalize
+# split_text() applies normalization automatically
 sentences = split_text(text)
 ```
 
-### Batch inference (nhiều câu với crossfade)
+### Batch Inference with Crossfade
+
+For multiple sentences with smooth transitions:
 
 ```python
 from mira.model import MiraTTS
 
 mira_tts = MiraTTS('model_pretrained')
 
-file = "reference.wav"
 texts = [
     "Xin chào, tôi là trợ lý ảo.",
     "Hôm nay thời tiết rất đẹp.",
     "Công nghệ AI đang phát triển nhanh chóng."
 ]
 
-context_tokens = [mira_tts.encode_audio(file)]
+context_tokens = [mira_tts.encode_audio("reference.wav")]
 
-# Crossfade 50ms giữa các câu, fade in 10ms, fade out 50ms
 audio = mira_tts.batch_generate(
     texts,
     context_tokens,
-    crossfade_ms=50,
-    fade_in_ms=10,
-    fade_out_ms=50
+    crossfade_ms=50,   # 50ms crossfade between sentences
+    fade_in_ms=10,     # 10ms fade in at start
+    fade_out_ms=50     # 50ms fade out at end
 )
 ```
 
-### Gradio Web UI
+### Web UI
 
 ```bash
 python app.py
 ```
 
-Mở trình duyệt tại `http://localhost:7860`
+Open browser at `http://localhost:7860`. Model will be downloaded automatically on first run.
 
-> **Note:** Model sẽ tự động được tải từ HuggingFace nếu chưa có.
-
-### CLI Inference
+### CLI
 
 ```bash
-# Cơ bản
+# Basic usage
 python infer.py --text "Xin chào, tôi là Vira." --reference audio.wav
 
-# Chỉ định output
+# Specify output file
 python infer.py --text "Năm 2024 là năm tuyệt vời." --reference audio.wav --output output.wav
 
-# Đọc từ file text
+# Read from text file
 python infer.py --text-file story.txt --reference audio.wav --output story.wav
 
-# Tắt text normalization
+# Disable text normalization
 python infer.py --text "Xin chào" --reference audio.wav --no-normalize
 ```
 
-## 📁 Cấu trúc
+## Project Structure
 
 ```
 Vira-tts/
 ├── mira/
-│   ├── model.py          # MiraTTS với FlashSR và crossfade
-│   └── utils.py          # Utilities (split_text, normalize_vietnamese)
+│   ├── model.py          # MiraTTS with FlashSR and crossfade
+│   └── utils.py          # Text processing utilities
 ├── app.py                # Gradio Web UI
-├── predict.py            # Script test
-└── model_pretrained/     # Model từ HuggingFace
+├── infer.py              # CLI inference script
+├── predict.py            # Test script
+└── model_pretrained/     # Model files (auto-downloaded)
 ```
 
-## 🔧 Tính năng Audio
+## Audio Processing
 
-### Crossfade
-Khi nối nhiều câu, sử dụng crossfade để tránh tiếng "click":
-```
-Câu 1: ───────────╲
-                   ╳  ← Crossfade 50ms
-Câu 2:            ╱───────────
-```
+**Crossfade**: When joining multiple sentences, crossfade is applied to avoid audio clicks at boundaries (default: 50ms).
 
-### Fade in/out
-Áp dụng fade ở đầu và cuối audio:
-```
-Audio: ╱─────────────────────╲
-       ↑                     ↑
-   Fade in 10ms         Fade out 50ms
-```
+**Fade in/out**: Smooth fade applied at the beginning (10ms) and end (50ms) of the final audio.
 
-## 🙏 Credits
+## Credits
 
-- [MiraTTS](https://github.com/ysharma3501/MiraTTS) - Model gốc
+- [MiraTTS](https://github.com/ysharma3501/MiraTTS) - Original model
 - [Spark-TTS](https://huggingface.co/SparkAudio/Spark-TTS-0.5B) - Base model
 - [FlashSR](https://github.com/ysharma3501/FlashSR) - Audio super-resolution
 - [LMDeploy](https://github.com/InternLM/lmdeploy) - LLM inference optimization
-- [soe-vinorm](https://github.com/v-nhandt21/VietnameseSoETextNorm) - Vietnamese text normalization
+- [soe-vinorm](https://github.com/vinhdq842/soe-vinorm) - Vietnamese text normalization
 
-## 📧 Liên hệ
+## License
+
+MIT
+
+## Contact
 
 GitHub: [@iamdinhthuan](https://github.com/iamdinhthuan)
