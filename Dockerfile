@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_NO_CACHE_DIR=1 \
@@ -21,6 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . .
 
 RUN pip install --upgrade pip \
+    && pip install --index-url https://download.pytorch.org/whl/cu124 \
+        torch==2.6.0 \
+        torchaudio==2.6.0 \
     && pip install \
         lmdeploy \
         librosa \
