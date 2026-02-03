@@ -98,6 +98,19 @@ python app.py
 
 Open browser at `http://localhost:7860`. Model will be downloaded automatically on first run.
 
+### Docker (GPU)
+
+Requires NVIDIA Container Toolkit.
+
+```bash
+docker build -t vira-tts:latest .
+docker run --rm -it --gpus all -p 7860:7860 \
+  -v $(pwd)/.hf-cache:/app/.cache/huggingface \
+  vira-tts:latest
+```
+
+Model sẽ tự tải ở lần chạy đầu. Mount cache để tránh tải lại.
+
 ### CLI
 
 ```bash

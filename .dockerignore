@@ -1,0 +1,14 @@
+.git/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.venv/
+.env
+.DS_Store
+model_pretrained/
+outputs_vi/
+*.wav
+output.wav
